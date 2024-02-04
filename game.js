@@ -194,7 +194,7 @@ function step() {
 
     // take another step
     setTimeout( () => {
-        window.requestAnimationFrame(() => step());
+        step();
     }, 100);
 }
 
