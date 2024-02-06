@@ -54,6 +54,9 @@ let gridheight = 0;
 // initialize state array (will set to zero later)
 let state = [];
 
+// initialize memory
+let memory = [];
+
 // game tracking variables
 isRunning = false;
 numSteps = 0;
@@ -70,8 +73,18 @@ function setGridDimensions(grid_setting) {
 
 
 // zero out entire state array
-function resetState() {
+function clearState() {
     state = Array(gridheight).fill(0).map(x => Array(gridwidth).fill(0));
+}
+
+function resetState() {
+    clearState();
+
+    for (let i=0; i<gridheight; i++) {
+        for (let j=0; j<gridwidth; j++) {
+            state[i][j] = memory[i][j];
+        }
+    }
 }
 
 
@@ -116,8 +129,19 @@ function initGrid($grid) {
 
 
 // deactivate all cells
-function resetCells() {
+function clearCells() {
     $('.cell').removeClass('active');
+}
+
+function resetCells() {
+    clearCells();
+    for (let i=0; i<gridheight; i++) {
+        for (let j=0; j<gridwidth; j++) {
+            if (state[i][j] == 1) {
+                $(`#cell_${i}_${j}`).addClass('active');
+            }
+        }
+    }
 }
 
 
@@ -203,8 +227,8 @@ function random(p) {
     isRunning = false;
 
     // clear all cells
-    resetState();
-    resetCells();
+    clearState();
+    clearCells();
 
     // make proportion `p` of cells active
     for (let i=0; i<gridheight; i++) {
@@ -224,7 +248,7 @@ $(document).ready(function() {
     setGridDimensions('50x30');
 
     // initialize grid state to zeros
-    resetState();
+    clearState();
     
     // initialize the grid
     initGrid($('#grid'));
@@ -236,6 +260,14 @@ $(document).ready(function() {
     $('#btn_run').click(function(e) {
         if (isRunning) {
             return;  // if we're already running, do nothing
+        }
+
+        // save current state
+        memory = Array(gridheight).fill(0).map(x => Array(gridwidth).fill(0));
+        for (let i=0; i<gridheight; i++) {
+            for (let j=0; j<gridwidth; j++) {
+                memory[i][j] = state[i][j];
+            }
         }
 
         // need to set this outside the step(), which is called internally
@@ -258,6 +290,16 @@ $(document).ready(function() {
         resetCells();
     });
 
+    // CLEAR button
+    $('#btn_clear').click(function(e) {
+        isRunning = false;
+        numSteps = 0;
+        $('#stepcounter').html(`Step: ${numSteps}`);
+
+        clearState();
+        clearCells();
+    });
+
     // RANDOM button
     $('#btn_random').click(function(e) {
         random(0.2); 
@@ -271,8 +313,8 @@ $(document).ready(function() {
             isRunning = false;
 
             // clear all cells
-            resetState();
-            resetCells();
+            clearState();
+            clearCells();
 
             // fill the state
             loadPreset(key, 3);
@@ -291,13 +333,13 @@ $(document).ready(function() {
             $(this).addClass('selected');
 
             // reset state
-            resetState();
+            clearState();
 
             // re-initialize the grid
             initGrid($('#grid'));
 
             // inactivate cells
-            resetCells();
+            clearCells();
         });
     });
 
